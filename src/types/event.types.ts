@@ -15,3 +15,5 @@ export type EventType = {
 	id_organization: number
 	category_id: number | null
 }
+
+export type EventForUseInTable = Pick<EventType, "id" | "title" | "isPrivary" | "created_at">;

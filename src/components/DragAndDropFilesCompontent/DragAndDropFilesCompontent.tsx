@@ -40,9 +40,9 @@ export default function DragAndDropFilesCompontent() {
 			{
 				!files && (
 					<div className="bg-slate-50 p-4 text-center my-3" onDragOver={handleDragOver} onDrop={handleDrop} id="dropzone" onDragLeave={handleDragLeave}>
-						<h1>
+						<p className="text-xs">
 							Arraste suas imagens aqui!
-						</h1>
+						</p>
 						<input type="file" multiple onChange={(e) => setFiles(e.target.files)} ref={inputRef} hidden />
 					</div>
 				)

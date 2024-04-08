@@ -1,223 +1,209 @@
-import { Select } from "antd";
-import { FaMapMarkerAlt } from "react-icons/fa";
-import { MdOutlineSubtitles } from "react-icons/md";
-import { FaImages } from "react-icons/fa";
-import DragAndDropFilesCompontent from "../components/DragAndDropFilesCompontent/DragAndDropFilesCompontent";
-import { FaDatabase } from "react-icons/fa";
-import { FormEvent } from "react";
-import { DatePicker } from 'antd';
+import { Controller, useForm } from "react-hook-form";
+import DashboardHeadComponent from "../components/DashboardHeadCompontent/DashboardHeadCompontent";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { DatePicker } from "antd";
 import locale from "antd/es/date-picker/locale/pt_BR";
-import { FaHome } from "react-icons/fa";
+
+import moment from "moment";
+import { MdOutlineSubtitles } from "react-icons/md";
+import { FaDatabase, FaImages } from "react-icons/fa6";
+import { FaMapMarkerAlt } from "react-icons/fa";
+import { useState } from "react";
+import DragAndDropFilesCompontent from "../components/DragAndDropFilesCompontent/DragAndDropFilesCompontent";
 
 const { RangePicker } = DatePicker;
 
+const createEventFormSchema = z.object({
+	title: z.string()
+		.min(1, "O titulo do evento é obrigatório!")
+		.transform(input => {
+			return input.trim().split(" ").map(word => {
+				return word[0].toUpperCase().concat(word.substring(1))
+			}).join(" ")
+		})
+	,
+	description: z.string()
+		.min(1, "A descrição do evento é obrigatório!"),
+	dates: z.array(z.string()),
+	local: z.string().min(1, "Insira o local do evento!"),
+	zip_code: z.string().min(1, "Preencha o valor corretamente"),
+	country: z.string().min(1, "Preencha o valor corretamente"),
+	area_of_the_place: z.string().min(1, "Preencha o valor corretamente"),
+});
+
+type CreateEventFormData = z.infer<typeof createEventFormSchema>;
+
 export default function AddEventPage() {
 
+	const { control, register, handleSubmit, formState: { errors } } = useForm<CreateEventFormData>({
+		resolver: zodResolver(createEventFormSchema),
+	});
 
-	const handleChangeSelectElement = (value: string) => {
-		console.log(`selected ${value}`);
-	};
+	if (errors.dates) {
+		errors.dates.message = "Seleciona a data de Início e término.";
+	}
 
-	const handleForm = (event: FormEvent) => {
-		event.preventDefault();
-
-		const formData = new FormData(event.target as HTMLFormElement);
-
-		// Aqui você pode trabalhar com o objeto FormData, como enviar para o servidor ou fazer outras operações.
-
-		// Exemplo de uso:
-		for (const [name, value] of formData.entries()) {
-			console.log(name, value);
-		}
+	function createEvent(data: any) {
+		console.log(data);
 	}
 
 	return (
 		<>
-			<header>
-				<div className=" px-5 py-2 rounded-lg  mb-4">
-					<div className="flex-1">
-						<p className="text-xs font-semibold mb-3">
-							<span className="inline-block"> <FaHome /> </span> &nbsp; / &nbsp; <span className="">Eventos</span> &nbsp; / &nbsp; <span className="text-orange-500">Adicionar</span>
-						</p>
-						<h2 className="font-semibold text-2xl mb-3">
-							Adicionar Evento
-						</h2>
-						<p>
-							Adicione eventos para as organizações que já estão cadastrados no nosso sistema.
-						</p>
+			<DashboardHeadComponent title="Adicionar Evento" description="Adicione eventos para as organizações que já estão cadastrados no nosso sistema." breadCrumb={{ items: [{ label: "Eventos", link: "../events" }], currentPage: "Adicionar" }} />
+
+			<form onSubmit={handleSubmit(createEvent)} className="bg-white py-6 px-8 rounded-lg border-[1px] grid grid-cols-12 gap-x-12 max-md:gap-x-0 select-none">
+				<div className="col-span-6 max-lg:col-span-12 max-md:col-span-12 max-sm:col-span-12">
+					<h4 className="flex flex-row items-center gap-x-2 font-bold mb-3 text-lg">
+						<FaDatabase />
+						Dados do evento
+					</h4>
+					<div className="my-3">
+						<label htmlFor="">
+							Title
+						</label>
+						<input
+							type="text"
+							className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm"
+							placeholder="O titulo do evento"
+							{...register("title")}
+						/>
+						{errors.title && <span className="mt-1 text-xs text-red-500">{errors.title?.message}</span>}
 					</div>
-					<div className="flex-1">
-
+					<div className="my-3">
+						<label htmlFor="">
+							Descrição
+						</label>
+						<textarea
+							className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm"
+							placeholder="O melhor evento do país..."
+							cols={30}
+							rows={5}
+							{...register("description")}
+						>
+						</textarea>
+						{errors.description && <span className="mt-1 text-xs text-red-500">{errors.description?.message}</span>}
 					</div>
-				</div>
-			</header>
-
-			<form onSubmit={handleForm}>
-				<div className="grid grid-cols-12 gap-x-4">
-					<div className="col-span-6">
-						<div className="bg-white py-6 px-8 rounded-lg border-[1px]">
-							<h4 className="flex flex-row items-center gap-x-2 font-bold mb-3 text-lg">
-								<FaDatabase />
-								Dados do evento
-							</h4>
-							<div className="my-3">
-								<label htmlFor="data[Title]">
-									<span className="block mb-1">Title</span>
-									<input name="title" id="data[Title]" type="text" className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm" placeholder="Show de fulano" />
-								</label>
-							</div>
-							<div className="my-3">
-								<label htmlFor="data[Description]">
-									<span className="block mb-1">Description</span>
-									<textarea name="description" className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm" placeholder="O melhor evento do país..." id="data[Description]" cols={30} rows={5}></textarea>
-								</label>
-							</div>
-							<div className="my-3">
-								<label htmlFor="data[expected_date]" className="block mb-1">
-									Datas
-								</label>
-								<RangePicker showTime placeholder={["Data de Início", "Data de Término"]} locale={locale} format="DD/MM/YYYY HH:mm" className="w-full" name="dates" />
-							</div>
-							{/* <div className="my-3 flex	flex-row gap-x-4">
-							<div className="flex-1">
-							<label htmlFor="data[expected_date]">
-							<span className="block mb-1">Data de Início</span>
-							<input className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm" type="date" name="expected_date" id="data[expected_date]" />
-							</label>
-							</div>
-							<div className="flex-1">
-							<label htmlFor="data[end_date]">
-							<span className="block mb-1">Data de Término</span>
-							<input className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm" type="date" name="end_date" id="data[end_date]" />
-							</label>
-							</div>
-						</div> */}
-
-							<hr className="my-4" />
-							<h4 className="flex flex-row items-center gap-x-2 font-bold mb-3 text-lg">
-								<MdOutlineSubtitles />
-								Informações gerais
-							</h4>
-							<div className="flex flex-row justify-between">
-								<div className="flex-1">
-									<p className="my-2">
-										O evento é privado?
-									</p>
-									<div className="flex flex-row gap-x-4">
-										<label htmlFor="">
-											<input type="radio" name="isPrivary" id="" />
-											&nbsp;
-											Sim
-										</label>
-										<label htmlFor="">
-											<input type="radio" name="isPrivary" id="" checked />
-											&nbsp;
-											Não
-										</label>
-									</div>
-								</div>
-								<div className="flex-1">
-									<label htmlFor="">
-										Organizadores
-									</label>
-									<Select
-										defaultValue="Flow-Fest"
+					<div className="my-3">
+						<label className="block mb-1">
+							Datas
+						</label>
+						<Controller
+							control={control}
+							name="dates"
+							render={({ field }) => {
+								return (
+									<RangePicker
+										showTime
+										placeholder={["Data de Início", "Data de Término"]}
+										locale={locale}
+										format="DD/MM/YYYY HH:mm"
 										className="w-full"
-										onChange={handleChangeSelectElement}
-										options={[
-											{ value: 'Flow-Fest', label: 'Flow Fest' },
-											{ value: 'CENA-2k25', label: 'CENA 2k25' },
-											/* { value: 'disabled', label: 'Disabled', disabled: true }, */
-										]}
+										onChange={(output) => {
+											const firstDate = moment(output[0]?.toDate()).format("DD/MM/YYYY HH:mm").toString();
+											const secondDate = moment(output[1]?.toDate()).format("DD/MM/YYYY HH:mm").toString();
+											const res = [firstDate, secondDate]
+											return field.onChange(res);
+										}}
 									/>
-								</div>
-							</div>
-							<hr className="my-4" />
-							<h4 className="flex flex-row items-center gap-x-2 font-bold mb-3 text-lg">
-								<FaImages />
-								Imagens
-							</h4>
-							<p>
-								As imagens são obrigatórios para que haja confiabilidade.
+								)
+							}}
+						/>
+						{errors.dates && <span className="mt-1 text-xs text-red-500">{errors.dates?.message}</span>}
+					</div>
+					<hr className="my-4" />
+					<h4 className="flex flex-row items-center gap-x-2 font-bold mb-3 text-lg">
+						<MdOutlineSubtitles />
+						Informações gerais
+					</h4>
+					<div className="flex flex-row items-start justify-between mb-4">
+						<div className="flex-1">
+							<p className="text-sm mb-2">
+								Todo evento precisa ser vinculado a uma organização, por favor escolha uma.
 							</p>
-							{/* Renderizar as imagens aqui */}
-							<DragAndDropFilesCompontent />
+							<button type="button" className="text-xs font-semibold bg-slate-50 px-6 py-3 text-orange-600">
+								Vincular a uma organização<i className="text-orange-500">*</i>
+							</button>
+						</div>
+						<div className="flex-1">
+							<p className="my-2 text-center">
+								O evento é privado?
+							</p>
+							<div className="flex flex-row items-center justify-center gap-x-4">
+								<label htmlFor="isPrivate-yes">
+									<input type="radio" name="isPrivary" id="isPrivate-yes" onChange={() => console.log("Selecionado Sim")} />
+									&nbsp;
+									Sim
+								</label>
+								<label htmlFor="isPrivate-no">
+									<input type="radio" name="isPrivary" id="isPrivate-no" onChange={() => console.log("Selecionado Não")} defaultChecked />
+									&nbsp;
+									Não
+								</label>
+							</div>
 						</div>
 					</div>
-					<div className="col-span-6">
-						<div className="bg-white py-6 px-8 rounded-lg border-[1px]">
-							<h4 className="flex flex-row items-center gap-x-2 font-bold mb-3 text-lg">
-								<FaMapMarkerAlt />
-								Localização
-							</h4>
-							<label htmlFor="data[local]">
-								<span className="block mb-1">Local do evento</span>
-								<input className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm" type="text" name="" placeholder="Ex: Av. 1 de Janeiro" id="data[local]" />
-							</label>
-							<p className="my-3">
-								Quer ser mais exato?
-							</p>
-							<label htmlFor="">
-								<input type="checkbox" name="" id="" />
-								&nbsp;
-								Sim
-							</label>
-							<hr className="my-4" />
-							{/* se caso ele por que sim no input:checkbox acima, terá que ser renderizado mais inputs */}
-							<div className="mb-3">
-								<label htmlFor="">
-									<span className="block mb-1">
-										zip dode
-									</span>
-									<input type="text" className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm" placeholder="zip dode" />
-								</label>
-							</div>
-							<div className="mb-3">
-								<label htmlFor="">
-									<span className="block mb-1">
-										location number
-									</span>
-									<input type="text" className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm" placeholder="location number" />
-								</label>
-							</div>
-							<div className="mb-3">
-								<label htmlFor="">
-									<span className="block mb-1">
-										street
-									</span>
-									<input type="text" className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm" placeholder="street" />
-								</label>
-							</div>
-							<div className="mb-3">
-								<label htmlFor="">
-									<span className="block mb-1">
-										country
-									</span>
-									<input type="text" className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm" placeholder="country" />
-								</label>
-							</div>
-							<div className="mb-3">
-								<label htmlFor="">
-									<span className="block mb-1">
-										state
-									</span>
-									<input type="text" className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm" placeholder="state" />
-								</label>
-							</div>
-							<div className="mb-3">
-								<label htmlFor="">
-									<span className="block mb-1">
-										area of the place
-									</span>
-									<input type="text" className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm" placeholder="area_of_the_place" />
-								</label>
-							</div>
-						</div>
+					<hr className="my-4" />
+					<h4 className="flex flex-row items-center gap-x-2 font-bold mb-3 text-lg">
+						<FaMapMarkerAlt />
+						Localização
+					</h4>
+					<div className="my-3">
+						<label htmlFor="data[local]">
+							<span className="block mb-1">Local do evento</span>
+							<input
+								className="focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm"
+								type="text"
+								placeholder="Ex: Av. 1 de Janeiro" id="data[local]"
+								{...register("local")}
+							/>
+						</label>
+						{errors.local && <span className="mt-1 text-xs text-red-500">{errors.local?.message}</span>}
+					</div>
+					<div className="my-3">
+						<label htmlFor="">dasd</label>
+						<input
+							className="focus:border-range-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm"
+							type="text"
+							{...register("zip_code")}
+						/>
+						{errors.zip_code && <span className="mt-1 text-xs text-red-500">{errors.zip_code?.message}</span>}
+					</div>
+					<div className="my-3">
+						<label htmlFor="">dasd</label>
+						<input
+							className="focus:border-range-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm"
+							type="text"
+							{...register("country")}
+						/>
+						{errors.country && <span className="mt-1 text-xs text-red-500">{errors.country?.message}</span>}
+					</div>
+					<div className="my-3">
+						<label htmlFor="">dasd</label>
+						<input
+							className="focus:border-range-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm"
+							type="text"
+							{...register("area_of_the_place")}
+						/>
+						{errors.area_of_the_place && <span className="mt-1 text-xs text-red-500">{errors.area_of_the_place?.message}</span>}
 					</div>
 				</div>
-				<button type="submit" className="flex flex-row gap-x-2 items-center py-3 px-6 text-center max-w-max bg-orange-500 text-white transition-colors rounded-lg active:bg-orange-100 active:text-orange-500 font-semibold text-xs">
-					Adicionar Evento
-				</button>
+				<div className="col-span-6 max-lg:col-span-12 max-md:col-span-12 max-sm:col-span-12">
+					<hr className="my-4 max-lg:block hidden" />
+					<h4 className="flex flex-row items-center gap-x-2 font-bold mb-3 text-lg">
+						<FaImages />
+						Imagens
+					</h4>
+					<p className="text-sm">
+						As imagens são obrigatórios. As dimensões que recomendamos é 600 de altura e 1250 de largura (1250x600).
+					</p>
+					<DragAndDropFilesCompontent />
+				</div>
+				<div className="col-span-12">
+					<button type="submit" className="flex flex-row gap-x-2 items-center py-3 px-6 text-center max-w-max bg-orange-500 text-white transition-colors rounded-lg active:bg-orange-100 active:text-orange-500 font-semibold text-xs">
+						Adicionar Evento
+					</button>
+				</div>
 			</form>
 
 		</>

@@ -4,7 +4,7 @@ import type { CheckboxProps } from 'antd';
 import { MdAdd } from "react-icons/md";
 import { Link } from "react-router-dom";
 
-import DashboardHeadCompontent from "../components/DashboardHeadCompontent/DashboardHeadCompontent";
+import DashboardHeadComponent from "../components/DashboardHeadCompontent/DashboardHeadCompontent";
 
 export default function OrganizationsPage() {
 
@@ -53,7 +53,7 @@ export default function OrganizationsPage() {
 	return (
 		<>
 
-			<DashboardHeadCompontent
+			<DashboardHeadComponent
 				title="Organizações"
 				description="Visualize abaixo todas as organizações registradas no sistema."
 				breadCrumb={
@@ -67,9 +67,9 @@ export default function OrganizationsPage() {
 			<div className="grid grid-cols-12 gap-x-4">
 				<div className="col-span-2">
 					<div className="bg-white p-5 rounded-lg border-[1px] select-none">
-						<h2 className="font-semibold text-xl mb-0">
+						<h4 className="font-semibold text-xl mb-0">
 							Filtrar
-						</h2>
+						</h4>
 						<hr className="my-4" />
 						<p className="mb-2 capitalize font-semibold text-sm">
 							ordernar por:

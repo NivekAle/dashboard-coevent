@@ -3,6 +3,7 @@ import { IoTicket } from "react-icons/io5";
 import { FaUsers } from "react-icons/fa";
 import { IoIosLogOut } from "react-icons/io";
 import { NavLink } from "react-router-dom";
+import { IoBarChartSharp } from "react-icons/io5";
 import { FaBuilding } from "react-icons/fa";
 
 export default function SidebarComponent() {
@@ -28,6 +29,11 @@ export default function SidebarComponent() {
 			label: "usuários",
 			link: "users",
 			icon: <FaUsers className="w-6 h-6" fill="#f97316" />
+		},
+		{
+			label: "financeiro",
+			link: "finances",
+			icon: <IoBarChartSharp className="w-6 h-6" fill="#f97316" />
 		},
 	];
 
