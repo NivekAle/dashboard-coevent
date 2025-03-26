@@ -1,49 +1,89 @@
-import { Table, Checkbox, Select } from "antd";
-import type { CheckboxProps } from 'antd';
+import { Table, Checkbox, Select, Space } from "antd";
+import type { CheckboxProps, TableProps } from 'antd';
 
 import { MdAdd } from "react-icons/md";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
-import DashboardHeadComponent from "../components/DashboardHeadCompontent/DashboardHeadCompontent";
+import DashboardHeadComponent from "../../components/DashboardHeadCompontent/DashboardHeadCompontent";
+import { useEffect, useState } from "react";
+import { organizationApi } from "../../api/OrganizationApi";
+import Column from "antd/es/table/Column";
+
+type DataSourceProps = {
+	key: React.Key,
+	id: number,
+	name: string;
+	email: string;
+	telefone: string;
+};
 
 export default function OrganizationsPage() {
+
+	const [dataSource, setDataSource] = useState<DataSourceProps[]>();
+
+	useEffect(() => {
+
+		async function getAllOrganizations() {
+			const response = await organizationApi.getAll();
+			setDataSource(response);
+			console.log(response);
+		}
+
+		getAllOrganizations();
+
+	}, []);
 
 
 	const onChangeInputCheckBox: CheckboxProps['onChange'] = (e) => {
 		console.log(`checked = ${e.target.checked}`);
 	};
 
-	const dataSource = [
+	/* const dataSource = [
 		{
 			key: '1',
 			name: 'Mike',
-			age: 32,
-			address: '10 Downing Street',
+			telefone: 32,
+			email: '10 Downing Street',
 		},
 		{
 			key: '2',
 			name: 'John',
-			age: 42,
-			address: '10 Downing Street',
+			telefone: 42,
+			email: '10 Downing Street',
 		},
-	];
+	]; */
 
-	const columns = [
+	/* const dataSource = [
+		{}
+	]; */
+
+	const columns: TableProps<DataSourceProps>['columns'] = [
 		{
-			title: 'Name',
+			title: 'Nome',
 			dataIndex: 'name',
 			key: 'name',
 		},
 		{
-			title: 'Age',
-			dataIndex: 'age',
-			key: 'age',
+			title: 'Email',
+			dataIndex: 'email',
+			key: 'email',
 		},
 		{
-			title: 'Address',
-			dataIndex: 'address',
-			key: 'address',
+			title: 'Telefone',
+			dataIndex: 'telephone',
+			key: 'telephone',
 		},
+		{
+			title: "Ações",
+			dataIndex: "actions",
+			key: "actions",
+			render: (_, { id }) => (
+				<NavLink to={id.toString()}>
+					Veja mais
+				</NavLink>
+			),
+		}
+
 	];
 
 	const handleChangeSelectElement = (value: string) => {
@@ -139,7 +179,18 @@ export default function OrganizationsPage() {
 								Adicionar Organização
 							</Link>
 						</div>
-						<Table dataSource={dataSource} columns={columns} />
+						<Table dataSource={dataSource} columns={columns} >
+							<Column
+								title="Action"
+								key="action"
+								render={(_: any, record: DataSourceProps) => (
+									<Space size="middle">
+										<a>Invite {record.email}</a>
+										<a>Delete</a>
+									</Space>
+								)}
+							/>
+						</Table>
 					</div>
 				</div>
 			</div>

@@ -3,13 +3,13 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 
 const api = axios;
 
-api.defaults.baseURL = "http://localhost:3000/";
+api.defaults.baseURL = "http://localhost:12345/";
 
 export const eventApi = {
 	insert: async function (data: any) {
 
 		try {
-			const response: AxiosResponse = await axios.post("post/", data);
+			const response: AxiosResponse = await axios.post("event/", data);
 			return response.data;
 		} catch (err) {
 			const error = err as AxiosError;

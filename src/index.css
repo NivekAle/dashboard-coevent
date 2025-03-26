@@ -50,11 +50,11 @@ p {
 	background-color: theme(backgroundColor.slate.100);
 }
 
-
+/*
 #dropzone {
 	border: 2px dashed transparent;
 }
-
+ */
 #dropzone.inDrag {
 	border: 2px dashed theme(backgroundColor.orange.500);
 }

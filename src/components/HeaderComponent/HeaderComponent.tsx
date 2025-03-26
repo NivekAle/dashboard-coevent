@@ -2,8 +2,10 @@ import { FaBell } from "react-icons/fa6";
 import { IoMdSettings } from "react-icons/io";
 import { NavLink } from "react-router-dom";
 import AvatarCompontent from "../AvatarCompontent/AvatarCompontent";
+import { IoToggleOutline } from "react-icons/io5";
 
 export default function HeaderComponent() {
+
 	return (
 		<div className="col-span-12 py-1 px-4">
 			<div className="grid grid-cols-12 items-center h-full">
@@ -19,6 +21,13 @@ export default function HeaderComponent() {
 						</div>
 						<div className="flex flex-row gap-x-4 items-center">
 							<ul className="flex flex-row gap-x-4">
+								<li>
+									<button
+									>
+										<IoToggleOutline />
+									</button>
+
+								</li>
 								<li>
 									<FaBell className="w-5 h-5" />
 								</li>

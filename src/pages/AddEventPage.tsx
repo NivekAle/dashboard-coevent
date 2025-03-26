@@ -1,7 +1,9 @@
 import { Controller, useForm } from "react-hook-form";
 import DashboardHeadComponent from "../components/DashboardHeadCompontent/DashboardHeadCompontent";
+
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+
 import { DatePicker } from "antd";
 import locale from "antd/es/date-picker/locale/pt_BR";
 
@@ -9,8 +11,12 @@ import moment from "moment";
 import { MdOutlineSubtitles } from "react-icons/md";
 import { FaDatabase, FaImages } from "react-icons/fa6";
 import { FaMapMarkerAlt } from "react-icons/fa";
-import { useState } from "react";
-import DragAndDropFilesCompontent from "../components/DragAndDropFilesCompontent/DragAndDropFilesCompontent";
+/* import { useState } from "react"; */
+import { eventApi } from "../api/EventApi";
+
+/* import { correiosApi } from "../api/CorreiosApi"; */
+import DragAndDropFilesComponent from "../components/DragAndDropFilesCompontent/DragAndDropFilesCompontent";
+import ModalSelectOrganization from "../components/modalSelectOrganization/ModalSelectOrganization";
 
 const { RangePicker } = DatePicker;
 
@@ -27,9 +33,14 @@ const createEventFormSchema = z.object({
 		.min(1, "A descrição do evento é obrigatório!"),
 	dates: z.array(z.string()),
 	local: z.string().min(1, "Insira o local do evento!"),
-	zip_code: z.string().min(1, "Preencha o valor corretamente"),
-	country: z.string().min(1, "Preencha o valor corretamente"),
-	area_of_the_place: z.string().min(1, "Preencha o valor corretamente"),
+	zip_code: z.string().optional(),
+	country: z.string().optional(),
+	area_of_the_place: z.string().optional(),
+	isPrivary: z.boolean(),
+	images: z
+		.array(z.instanceof(File))
+		.min(1, "Pelo menos uma imagem é obrigatória."),
+	id_organization: z.number().min(1, "Selecione uma organização!")
 });
 
 type CreateEventFormData = z.infer<typeof createEventFormSchema>;
@@ -44,9 +55,16 @@ export default function AddEventPage() {
 		errors.dates.message = "Seleciona a data de Início e término.";
 	}
 
-	function createEvent(data: any) {
-		console.log(data);
+	if (errors.id_organization) {
+		errors.id_organization.message = "Selecione uma organização!";
 	}
+
+	function createEvent(data: CreateEventFormData) {
+		console.log(data);
+
+		eventApi.insert(data);
+	}
+
 
 	return (
 		<>
@@ -60,7 +78,7 @@ export default function AddEventPage() {
 					</h4>
 					<div className="my-3">
 						<label htmlFor="">
-							Title
+							Titulo
 						</label>
 						<input
 							type="text"
@@ -111,36 +129,11 @@ export default function AddEventPage() {
 						/>
 						{errors.dates && <span className="mt-1 text-xs text-red-500">{errors.dates?.message}</span>}
 					</div>
-					<hr className="my-4" />
-					<h4 className="flex flex-row items-center gap-x-2 font-bold mb-3 text-lg">
-						<MdOutlineSubtitles />
-						Informações gerais
-					</h4>
+
 					<div className="flex flex-row items-start justify-between mb-4">
 						<div className="flex-1">
-							<p className="text-sm mb-2">
-								Todo evento precisa ser vinculado a uma organização, por favor escolha uma.
-							</p>
-							<button type="button" className="text-xs font-semibold bg-slate-50 px-6 py-3 text-orange-600">
-								Vincular a uma organização<i className="text-orange-500">*</i>
-							</button>
 						</div>
 						<div className="flex-1">
-							<p className="my-2 text-center">
-								O evento é privado?
-							</p>
-							<div className="flex flex-row items-center justify-center gap-x-4">
-								<label htmlFor="isPrivate-yes">
-									<input type="radio" name="isPrivary" id="isPrivate-yes" onChange={() => console.log("Selecionado Sim")} />
-									&nbsp;
-									Sim
-								</label>
-								<label htmlFor="isPrivate-no">
-									<input type="radio" name="isPrivary" id="isPrivate-no" onChange={() => console.log("Selecionado Não")} defaultChecked />
-									&nbsp;
-									Não
-								</label>
-							</div>
 						</div>
 					</div>
 					<hr className="my-4" />
@@ -161,16 +154,18 @@ export default function AddEventPage() {
 						{errors.local && <span className="mt-1 text-xs text-red-500">{errors.local?.message}</span>}
 					</div>
 					<div className="my-3">
-						<label htmlFor="">dasd</label>
+						<label htmlFor="">CEP</label>
 						<input
+
 							className="focus:border-range-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm"
 							type="text"
+							placeholder="0000-000"
 							{...register("zip_code")}
 						/>
 						{errors.zip_code && <span className="mt-1 text-xs text-red-500">{errors.zip_code?.message}</span>}
 					</div>
 					<div className="my-3">
-						<label htmlFor="">dasd</label>
+						<label htmlFor="">País</label>
 						<input
 							className="focus:border-range-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm"
 							type="text"
@@ -179,7 +174,7 @@ export default function AddEventPage() {
 						{errors.country && <span className="mt-1 text-xs text-red-500">{errors.country?.message}</span>}
 					</div>
 					<div className="my-3">
-						<label htmlFor="">dasd</label>
+						<label htmlFor="">Área do local</label>
 						<input
 							className="focus:border-range-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm"
 							type="text"
@@ -197,7 +192,87 @@ export default function AddEventPage() {
 					<p className="text-sm">
 						As imagens são obrigatórios. As dimensões que recomendamos é 600 de altura e 1250 de largura (1250x600).
 					</p>
-					<DragAndDropFilesCompontent />
+					<Controller
+						name="images"
+						control={control}
+						defaultValue={[]}
+						render={({ field }) => (
+							<DragAndDropFilesComponent
+								onChange={(files: File[]) => field.onChange(files)}
+							/>
+						)}
+					/>
+					{errors.images && <span className="-mt-3 text-xs text-red-500 text-center block">{errors.images.message}</span>}
+					<hr className="my-4" />
+					<h4 className="flex flex-row items-center gap-x-2 font-bold mb-3 text-lg">
+						<MdOutlineSubtitles />
+						Informações gerais
+					</h4>
+					<p className="text-sm mb-2">
+						Todo evento precisa ser vinculado a uma organização, por favor escolha uma.
+					</p>
+					<Controller
+						name="id_organization"
+						control={control}
+						render={({ field }) => (
+							<ModalSelectOrganization getOptionSelected={(id_option) => field.onChange(id_option)} />
+						)}
+					/>
+					{errors.id_organization && <span className="mt-2 text-xs text-red-500 block">{errors.id_organization.message}</span>}
+
+					<p className="text-sm mb-2 my-4">O evento é privado?</p>
+					<Controller
+						name="isPrivary"
+						control={control}
+						defaultValue={false}
+						render={({ field }) => (
+							<div className="flex gap-x-3">
+								<div className="flex-1 grow-0">
+									<input
+										type="radio"
+										value="1"
+										id="isPrivate-yes"
+										checked={field.value === true}
+										onChange={() => field.onChange(true)}
+										className="peer hidden"
+									/>
+									<label
+										htmlFor="isPrivate-yes"
+										className="
+										peer-checked:bg-orange-500 peer-checked:text-white
+										border-1 block px-5 py-2 bg-slate-100 cursor-pointer
+										rounded-md text-sm hover:bg-slate-200
+										">
+										Sim
+									</label>
+								</div>
+								<div className="flex-1 grow-0">
+									<input
+										type="radio"
+										value="0"
+										id="isPrivate-no"
+										checked={field.value === false}
+										onChange={() => field.onChange(false)}
+										className="peer hidden"
+									/>
+									<label
+										htmlFor="isPrivate-no"
+										className="
+										peer-checked:bg-orange-500 peer-checked:text-white
+										border-1 block px-5 py-2 bg-slate-100 cursor-pointer
+										rounded-md text-sm hover:bg-slate-200
+										">
+										Não
+									</label>
+								</div>
+							</div>
+						)}
+					/>
+					{errors.isPrivary && (
+						<span className="mt-1 text-xs text-red-500">
+							{errors.isPrivary.message}
+						</span>
+					)}
 				</div>
 				<div className="col-span-12">
 					<button type="submit" className="flex flex-row gap-x-2 items-center py-3 px-6 text-center max-w-max bg-orange-500 text-white transition-colors rounded-lg active:bg-orange-100 active:text-orange-500 font-semibold text-xs">

@@ -3,10 +3,11 @@ import DashboardPage from "./pages/DashboardPage";
 import TemplateCompontent from "./components/TemplateCompontent/TemplateComponent";
 import EventsPage from "./pages/EventsPage";
 import AddEventPage from "./pages/AddEventPage";
-import OrganizationsPage from "./pages/OrganizationsPage";
-import AddOrganizationPage from "./pages/AddOrganizationPage";
+import OrganizationsPage from "./pages/Organizations/OrganizationsPage";
+import AddOrganizationPage from "./pages/Organizations/AddOrganizationPage";
 import UsersPage from "./pages/UsersPage";
 import FinancesPage from "./pages/FinancesPage";
+import OrganizationDetailsPage from "./pages/Organizations/OrganizationDetailsPage";
 
 function App() {
 
@@ -20,6 +21,7 @@ function App() {
 
 				<Route path='/organizations' element={<OrganizationsPage />} />
 				<Route path='/organizations/add' element={<AddOrganizationPage />} />
+				<Route path="/organizations/:id" element={<OrganizationDetailsPage />} />
 
 				<Route path='/users' element={<UsersPage />} />
 
