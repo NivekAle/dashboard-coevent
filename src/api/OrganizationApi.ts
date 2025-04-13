@@ -20,7 +20,6 @@ export const organizationApi = {
 	getAll: async function () {
 		try {
 			const response = await axios.get("organization");
-			console.log(response);
 
 			return response.data;
 		} catch (err) {
@@ -28,4 +27,29 @@ export const organizationApi = {
 			return error.response?.data;
 		}
 	},
+
+	remove: async function (id: number) {
+		try {
+			const response = await axios.delete(`organization/remove/${id}`);
+
+			return response;
+		}
+		catch (err) {
+			const error = err as AxiosError;
+			return error.response?.data;
+		}
+
+	},
+
+	getOrgById: async function (id: number) {
+		try {
+			const response = await axios.get(`organization/${id}`)
+
+			return response.data;
+
+		} catch (err) {
+			const error = err as AxiosError;
+			return error.response?.data;
+		}
+	}
 };

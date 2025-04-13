@@ -1,9 +1,15 @@
 import DashboardHeadCompontent from "../../components/DashboardHeadCompontent/DashboardHeadCompontent";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import InputMask from "react-input-mask";
+
 
 import { z } from "zod";
 import { organizationApi } from "../../api/OrganizationApi";
 import { Alert } from "antd";
+import {
+	LoadingOutlined,
+	PlusOutlined
+} from '@ant-design/icons';
 
 const addOrganizationFormSchema = z.object({
 	name: z
@@ -26,15 +32,33 @@ const addOrganizationFormSchema = z.object({
 		.min(8, "A senha deve conter pelo menos 8 caracteres.")
 });
 
-
 export default function AddOrganizationPage() {
+
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const [alertType, setAlertType] = useState<"success" | "warning" | "error">("warning");
+
+	const formRef = useRef<HTMLFormElement>(null);
+
 	const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
 	const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
+	useEffect(() => {
+		if (alertMessage) {
+			const timer = setTimeout(() => {
+				setAlertMessage(null);
+				formRef.current?.reset();
+				setFormErrors({});
+			}, 2000);
+
+			return () => clearTimeout(timer);
+		}
+	}, [alertMessage]);
 
 	const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
+		setIsSubmitting(true); // Ativa loading
 
 		const formData = new FormData(event.currentTarget);
 		const data = Object.fromEntries(formData.entries());
@@ -44,12 +68,13 @@ export default function AddOrganizationPage() {
 
 			const response = await organizationApi.insert(validData);
 
-			if (response?.statusCode == 400) {
+			if (response?.statusCode === 400) {
 				setAlertMessage(response?.message);
+				setAlertType("error");
 			} else {
 				setAlertMessage("Organização criada com sucesso!");
+				setAlertType("success");
 			}
-
 		} catch (error) {
 			if (error instanceof z.ZodError) {
 				const fieldErrors: Record<string, string> = {};
@@ -60,8 +85,11 @@ export default function AddOrganizationPage() {
 				});
 				setFormErrors(fieldErrors);
 			}
+		} finally {
+			setIsSubmitting(false); // Desativa loading ao finalizar
 		}
 	};
+
 
 	return (
 		<>
@@ -76,8 +104,20 @@ export default function AddOrganizationPage() {
 						currentPage: "Adicionar"
 					}}
 			/>
-			{alertMessage && (<Alert className="left-5 absolute bottom-5" message={alertMessage} type="warning" closable />)}
-			<form onSubmit={handleFormSubmit}>
+
+			{
+				alertMessage && (
+					<Alert
+						showIcon
+						className="left-5 absolute bottom-5"
+						message={alertMessage}
+						type={alertType}
+						closable
+					/>
+				)
+			}
+
+			<form onSubmit={handleFormSubmit} ref={formRef}>
 				<div className="grid grid-cols-12 gap-x-4 mb-4">
 					<div className="col-span-6">
 						<div className="bg-white py-6 px-8 rounded-lg border-[1px]">
@@ -114,12 +154,11 @@ export default function AddOrganizationPage() {
 							<div className="my-3">
 								<label>
 									<span className="block mb-1">CNPJ</span>
-									<input
-										type="text"
+									<InputMask
+										mask="99.999.999/9999-99"
 										name="cnpj"
-										className={`focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm ${formErrors.cnpj ? "border-red-500" : ""
-											}`}
-										placeholder="CNPJ"
+										className={`focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm ${formErrors.cnpj ? "border-red-500" : ""}`}
+										placeholder="00.000.000/0000-00"
 									/>
 									{formErrors.cnpj && (
 										<span className="text-red-500 text-sm">{formErrors.cnpj}</span>
@@ -129,9 +168,9 @@ export default function AddOrganizationPage() {
 							<div className="my-3">
 								<label>
 									<span className="block mb-1">Telefone</span>
-									<input
-										maxLength={15}
-										type="text"
+									<InputMask
+										mask="(99) 99999-9999"
+										maskChar={null}
 										name="telephone"
 										className={`focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm ${formErrors.telephone ? "border-red-500" : ""
 											}`}
@@ -146,7 +185,7 @@ export default function AddOrganizationPage() {
 								<label>
 									<span className="block mb-1">Senha</span>
 									<input
-										type="text"
+										type="password"
 										name="password"
 										className={`focus:border-orange-300 block w-full bg-slate-50 outline-none py-2 px-4 rounded-lg border-[1px] text-sm ${formErrors.password ? "border-red-500" : ""
 											}`}
@@ -162,10 +201,24 @@ export default function AddOrganizationPage() {
 				</div>
 				<button
 					type="submit"
-					className="flex flex-row gap-x-2 items-center py-3 px-6 text-center max-w-max bg-orange-500 text-white transition-colors rounded-lg active:bg-orange-100 active:text-orange-500 font-semibold text-xs"
-				>
-					Adicionar Organização
+					disabled={isSubmitting}
+					className={`hover:bg-orange-400 flex flex-row gap-x-2 items-center py-4 px-6 text-center max-w-max transition-colors rounded-lg font-semibold text-xs ${isSubmitting ? "bg-orange-200 cursor-not-allowed text-orange-700" : "bg-orange-500 text-white active:bg-orange-100 active:text-orange-500"}`}>
+					{
+						isSubmitting ?
+							<span>
+								<LoadingOutlined />
+								&nbsp;
+								Enviando...
+							</span>
+							:
+							<span>
+								<PlusOutlined size={40} />
+								&nbsp;
+								Adicionar Organização
+							</span>
+					}
 				</button>
+
 			</form>
 		</>
 	);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button, Modal, Select } from 'antd';
 
 
@@ -25,7 +25,7 @@ export default function ModalSelectOrganization({ getOptionSelected }: ModalSele
 			setTimeout(() => {
 				setOpen(false);
 				setConfirmLoading(false);
-			}, 2000);
+			}, 600);
 		}
 	};
 

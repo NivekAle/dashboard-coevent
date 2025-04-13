@@ -4,10 +4,14 @@ import type { CheckboxProps, TableProps } from 'antd';
 import { MdAdd } from "react-icons/md";
 import { Link, NavLink } from "react-router-dom";
 
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+
 import DashboardHeadComponent from "../../components/DashboardHeadCompontent/DashboardHeadCompontent";
 import { useEffect, useState } from "react";
 import { organizationApi } from "../../api/OrganizationApi";
 import Column from "antd/es/table/Column";
+import TelephoneFormat from "../../utils/TelephoneFormat";
+import RemoveOrganizationModal from "./RemoveOrganizationModal";
 
 type DataSourceProps = {
 	key: React.Key,
@@ -15,22 +19,47 @@ type DataSourceProps = {
 	name: string;
 	email: string;
 	telefone: string;
+	status: boolean,
 };
 
 export default function OrganizationsPage() {
 
+	/* Modal Remove */
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
+	const [selectedOrgName, setSeletectedOrgName] = useState<string | null>(null);
+
+	const showModal = (id: number, name: string) => {
+		setSelectedOrgId(id);
+		setSeletectedOrgName(name);
+		setIsModalOpen(true);
+	};
+
+	const handleCancel = () => {
+		setIsModalOpen(false);
+		setSelectedOrgId(null);
+	};
+
+	const handleOk = async () => {
+		if (selectedOrgId !== null) {
+			await organizationApi.remove(selectedOrgId);
+			await fetchOrganizations();
+		}
+		setIsModalOpen(false);
+		setSelectedOrgId(null);
+		setSeletectedOrgName(null);
+	};
+
+
+	const fetchOrganizations = async () => {
+		const response = await organizationApi.getAll();
+		setDataSource(response);
+	};
+
 	const [dataSource, setDataSource] = useState<DataSourceProps[]>();
 
 	useEffect(() => {
-
-		async function getAllOrganizations() {
-			const response = await organizationApi.getAll();
-			setDataSource(response);
-			console.log(response);
-		}
-
-		getAllOrganizations();
-
+		fetchOrganizations();
 	}, []);
 
 
@@ -38,30 +67,16 @@ export default function OrganizationsPage() {
 		console.log(`checked = ${e.target.checked}`);
 	};
 
-	/* const dataSource = [
-		{
-			key: '1',
-			name: 'Mike',
-			telefone: 32,
-			email: '10 Downing Street',
-		},
-		{
-			key: '2',
-			name: 'John',
-			telefone: 42,
-			email: '10 Downing Street',
-		},
-	]; */
-
-	/* const dataSource = [
-		{}
-	]; */
-
 	const columns: TableProps<DataSourceProps>['columns'] = [
 		{
 			title: 'Nome',
 			dataIndex: 'name',
 			key: 'name',
+			render: (_, { id, name }) => (
+				<NavLink to={id.toString()} className="capitalize">
+					{name}
+				</NavLink>
+			)
 		},
 		{
 			title: 'Email',
@@ -72,18 +87,37 @@ export default function OrganizationsPage() {
 			title: 'Telefone',
 			dataIndex: 'telephone',
 			key: 'telephone',
+			render: (text) => TelephoneFormat(text)
+		},
+		{
+			title: "Status",
+			dataIndex: "status",
+			key: "status",
+			render: (_, { status }) => (
+				<>
+					{
+						status ?
+							<span className="ml-4 block w-2 h-2 bg-green-400 rounded-full outline outline-4 outline-green-200"></span> :
+							<span className="ml-4 block w-2 h-2 bg-red-400 rounded-full outline outline-4 outline-red-200"></span>
+					}
+				</>
+			)
 		},
 		{
 			title: "Ações",
 			dataIndex: "actions",
 			key: "actions",
-			render: (_, { id }) => (
-				<NavLink to={id.toString()}>
-					Veja mais
-				</NavLink>
+			render: (_, { id, name }) => (
+				<Space>
+					<button type="button" onClick={() => showModal(id, name)} className="bg-slate-100 p-2 hover:bg-orange-100 rounded-md hover:text-orange-400">
+						<DeleteOutlined className="text-xl" />
+					</button>
+					<NavLink to={"edit/" + id.toString()} className="bg-slate-100 p-2 hover:bg-orange-100 rounded-md hover:text-orange-400">
+						<EditOutlined className="text-xl" />
+					</NavLink>
+				</Space>
 			),
-		}
-
+		},
 	];
 
 	const handleChangeSelectElement = (value: string) => {
@@ -102,6 +136,13 @@ export default function OrganizationsPage() {
 							{ label: "Organizações", link: "organizations" }
 						],
 					}}
+			/>
+
+			<RemoveOrganizationModal
+				isModalOpen={isModalOpen}
+				handleOk={handleOk}
+				handleCancel={handleCancel}
+				orgName={selectedOrgName}
 			/>
 
 			<div className="grid grid-cols-12 gap-x-4">
@@ -175,7 +216,7 @@ export default function OrganizationsPage() {
 								Listagem
 							</h4>
 							<Link to={"/organizations/add"} className="flex flex-row gap-x-2 items-center py-3 px-6 text-center max-w-max bg-orange-500 text-white transition-colors rounded-lg active:bg-orange-100 active:text-orange-500 font-semibold text-xs">
-								<MdAdd />
+								<MdAdd className="text-lg" />
 								Adicionar Organização
 							</Link>
 						</div>
@@ -183,12 +224,6 @@ export default function OrganizationsPage() {
 							<Column
 								title="Action"
 								key="action"
-								render={(_: any, record: DataSourceProps) => (
-									<Space size="middle">
-										<a>Invite {record.email}</a>
-										<a>Delete</a>
-									</Space>
-								)}
 							/>
 						</Table>
 					</div>
