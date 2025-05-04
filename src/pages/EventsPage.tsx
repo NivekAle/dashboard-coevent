@@ -38,12 +38,12 @@ export default function EventsPage() {
 			key: 'title',
 		},
 		{
-			title: 'isPrivary',
+			title: 'Privado',
 			dataIndex: 'isPrivary',
 			key: 'isPrivary',
 		},
 		{
-			title: 'Created At',
+			title: 'Criado Em',
 			dataIndex: 'created_at',
 			key: 'created_at',
 		},

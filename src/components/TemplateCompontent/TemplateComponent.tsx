@@ -12,7 +12,7 @@ export default function TemplateCompontent() {
 				<div className="col-span-1 max-2xl:col-span-2 row-span-12">
 					<SidebarComponent />
 				</div>
-				<div className="col-span-11 max-2xl:col-span-10 row-span-12 bg-slate-100 p-4 4 block min-h-max overflow-auto relative">
+				<div className="col-span-11 max-2xl:col-span-10 row-span-12 bg-slate-100 p-4 4 block overflow-auto relative max-h-screen">
 					<Outlet />
 				</div>
 			</div>

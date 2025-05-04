@@ -41,9 +41,36 @@ export const organizationApi = {
 
 	},
 
+	active: async function (id: number) {
+		try {
+			const response = await axios.patch(`organization/active/${id}`);
+
+			return response;
+		}
+		catch (err) {
+			const error = err as AxiosError;
+			return error.response?.data;
+		}
+
+	},
+
 	getOrgById: async function (id: number) {
 		try {
 			const response = await axios.get(`organization/${id}`)
+
+			return response.data;
+
+		} catch (err) {
+			const error = err as AxiosError;
+			return error.response?.data;
+		}
+	},
+
+	updateOrg: async function (id: number, data: any) {
+		try {
+			const response = await axios.patch(`organization/edit/${id}`, {
+				data
+			});
 
 			return response.data;
 

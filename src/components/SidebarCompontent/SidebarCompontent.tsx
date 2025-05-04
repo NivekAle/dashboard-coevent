@@ -5,8 +5,14 @@ import { IoIosLogOut } from "react-icons/io";
 import { NavLink } from "react-router-dom";
 import { IoBarChartSharp } from "react-icons/io5";
 import { FaBuilding } from "react-icons/fa";
+import { useAuth } from "../../auth/useAuth";
 
 export default function SidebarComponent() {
+
+	const { logout } = useAuth();
+
+
+	const handleSignOut = () => logout();
 
 	const navItems = [
 		{
@@ -54,7 +60,7 @@ export default function SidebarComponent() {
 						))
 					}
 				</ul>
-				<button className="text-center w-full py-3 hover:bg-red-500 hover:text-white transition-colors rounded-lg active:bg-red-100 active:text-red-500 font-semibold text-red-500 text-xs flex items-center justify-center gap-x-2">
+				<button onClick={() => handleSignOut()} className="text-center w-full py-3 hover:bg-red-500 hover:text-white transition-colors rounded-lg active:bg-red-100 active:text-red-500 font-semibold text-red-500 text-xs flex items-center justify-center gap-x-2">
 					Logout
 					<IoIosLogOut className="w-5 h-5" />
 				</button>

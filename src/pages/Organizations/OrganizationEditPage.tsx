@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import DashboardHeadComponent from "../../components/DashboardHeadCompontent/DashboardHeadCompontent";
 import { organizationApi } from "../../api/OrganizationApi";
@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import InputMask from "react-input-mask";
 import { LoadingOutlined, SaveOutlined } from "@ant-design/icons";
+import { Alert } from "antd";
 
 // Zod schema
 const organizationSchema = z.object({
@@ -21,6 +22,10 @@ const organizationSchema = z.object({
 type OrganizationFormData = z.infer<typeof organizationSchema>;
 
 export default function OrganizationEditPage() {
+
+	const [alertType, setAlertType] = useState<"success" | "warning" | "error">("warning");
+	const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
 	const { id } = useParams();
 	const navigate = useNavigate();
 
@@ -61,8 +66,15 @@ export default function OrganizationEditPage() {
 	};
 
 	const onSubmit = async (formData: OrganizationFormData) => {
-		/* await organizationApi.updateOrg(Number(id), formData); */
-		navigate("/organizations");
+		const response = await organizationApi.updateOrg(Number(id), formData);
+
+		if (response?.statusCode === 400) {
+			setAlertMessage(response?.message);
+			setAlertType("error");
+		} else {
+			setAlertMessage("Organização criada com sucesso!");
+			setAlertType("success");
+		}
 	};
 
 	return (
@@ -74,6 +86,18 @@ export default function OrganizationEditPage() {
 					items: [{ label: "Organizações", link: "organizations" }],
 				}}
 			/>
+
+			{
+				alertMessage && (
+					<Alert
+						showIcon
+						className="left-5 absolute bottom-5"
+						message={alertMessage}
+						type={alertType}
+						closable
+					/>
+				)
+			}
 
 			<form onSubmit={handleSubmit(onSubmit)}>
 				<div className="grid grid-cols-12 gap-x-4 mb-4">

@@ -12,6 +12,8 @@ import { organizationApi } from "../../api/OrganizationApi";
 import Column from "antd/es/table/Column";
 import TelephoneFormat from "../../utils/TelephoneFormat";
 import RemoveOrganizationModal from "./RemoveOrganizationModal";
+import { IoChevronUpCircleOutline } from "react-icons/io5";
+import ActiveOrganizationModal from "./ActiveOrganizationModal";
 
 type DataSourceProps = {
 	key: React.Key,
@@ -28,6 +30,7 @@ export default function OrganizationsPage() {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
 	const [selectedOrgName, setSeletectedOrgName] = useState<string | null>(null);
+	const [modalActiveOrganization, setModalActiveOrganization] = useState(false);
 
 	const showModal = (id: number, name: string) => {
 		setSelectedOrgId(id);
@@ -35,8 +38,19 @@ export default function OrganizationsPage() {
 		setIsModalOpen(true);
 	};
 
+	const showModalActiveOrganization = (id: number, name: string) => {
+		setSelectedOrgId(id);
+		setSeletectedOrgName(name);
+		setModalActiveOrganization(true);
+	};
+
 	const handleCancel = () => {
 		setIsModalOpen(false);
+		setSelectedOrgId(null);
+	};
+
+	const handleActiveModalCancel = () => {
+		setModalActiveOrganization(false);
 		setSelectedOrgId(null);
 	};
 
@@ -46,6 +60,16 @@ export default function OrganizationsPage() {
 			await fetchOrganizations();
 		}
 		setIsModalOpen(false);
+		setSelectedOrgId(null);
+		setSeletectedOrgName(null);
+	};
+
+	const handleActiveOrgOk = async () => {
+		if (selectedOrgId !== null) {
+			await organizationApi.active(selectedOrgId);
+			await fetchOrganizations();
+		}
+		setModalActiveOrganization(false);
 		setSelectedOrgId(null);
 		setSeletectedOrgName(null);
 	};
@@ -76,7 +100,9 @@ export default function OrganizationsPage() {
 				<NavLink to={id.toString()} className="capitalize">
 					{name}
 				</NavLink>
-			)
+			),
+			sorter: (a, b) => a.name.localeCompare(b.name),
+			sortDirections: ["ascend"]
 		},
 		{
 			title: 'Email',
@@ -107,11 +133,23 @@ export default function OrganizationsPage() {
 			title: "Ações",
 			dataIndex: "actions",
 			key: "actions",
-			render: (_, { id, name }) => (
+			render: (_, { id, name, status }) => (
 				<Space>
-					<button type="button" onClick={() => showModal(id, name)} className="bg-slate-100 p-2 hover:bg-orange-100 rounded-md hover:text-orange-400">
-						<DeleteOutlined className="text-xl" />
-					</button>
+					{
+						status ?
+							<button
+								type="button"
+								onClick={() => showModal(id, name)}
+								className="bg-slate-100 p-2 hover:bg-red-100 rounded-md hover:text-red-400">
+								<DeleteOutlined className="text-xl" />
+							</button>
+							: <button
+								type="button"
+								onClick={() => showModalActiveOrganization(id, name)}
+								className="bg-slate-100 p-2 hover:bg-green-100 rounded-md hover:text-green-500">
+								<IoChevronUpCircleOutline className="text-xl" />
+							</button>
+					}
 					<NavLink to={"edit/" + id.toString()} className="bg-slate-100 p-2 hover:bg-orange-100 rounded-md hover:text-orange-400">
 						<EditOutlined className="text-xl" />
 					</NavLink>
@@ -142,6 +180,13 @@ export default function OrganizationsPage() {
 				isModalOpen={isModalOpen}
 				handleOk={handleOk}
 				handleCancel={handleCancel}
+				orgName={selectedOrgName}
+			/>
+
+			<ActiveOrganizationModal
+				isModalOpen={modalActiveOrganization}
+				handleOk={handleActiveOrgOk}
+				handleCancel={handleActiveModalCancel}
 				orgName={selectedOrgName}
 			/>
 
